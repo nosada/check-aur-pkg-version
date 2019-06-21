@@ -12,4 +12,4 @@ WORKDIR $BASE_DIR
 COPY . .
 RUN pip install --no-cache-dir --no-warn-script-location --user -r requirements.txt
 
-CMD ["python", "/app/check_aur_pkg_version", "-c", "/app/config.yaml"]
+CMD ["python", "/app/check-aur-pkg-version", "-c", "/app/config.yaml"]
