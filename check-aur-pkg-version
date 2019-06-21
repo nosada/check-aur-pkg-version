@@ -1,0 +1,155 @@
+#!/bin/env python
+
+"""
+Compare version of AUR package, which are maintained by given maintainer,
+with upstream on GitHub
+
+Usage:
+    check_aur_pkg_version MAINTAINER [--slack-webhook-url WEBHOOK_URL]
+    check_aur_pkg_version -c CONFIG
+
+Arguments:
+    MAINTAINER                         AUR package maintainer
+
+Options:
+    --slack-webhook-url WEBHOOK_URL    Slack incoming webhook URL
+                                       to post message of comparation
+                                       result
+    -c CONFIG                          Specify config instead of passing
+                                       maintainer and webhook URL directly
+"""
+
+from docopt import docopt
+import requests
+import slackweb
+import yaml
+
+
+class MaintainedAURPackages():
+    def __init__(self, maintainer=None, slack_webhook_url=None,
+                 config=None):
+        self.aur_endpoint = "https://aur.archlinux.org"
+
+        if config:
+            with open(config) as config_object:
+                conf = yaml.load(config_object, Loader=yaml.SafeLoader)
+            self.maintainer = conf["maintainer"]
+            if "slack_webhook_url" in conf:
+                slack_webhook_url = conf["slack_webhook_url"]
+
+        elif maintainer:
+            self.maintainer = maintainer
+
+        if slack_webhook_url:
+            self.slack = slackweb.Slack(url=slack_webhook_url)
+        else:
+            self.slack = None
+
+    def _get_maintained_packages(self):
+        rpc_query = "/rpc/?v=5&type=search&by=maintainer&arg={m}".format(
+            m=self.maintainer)
+        response = requests.get(self.aur_endpoint + rpc_query).json()
+
+        packages = response["results"]
+        return packages
+
+    @staticmethod
+    def _get_latest_upstream_version_on_github(repo_url):
+        if not repo_url.startswith("https://github.com"):
+            raise ValueError(
+                "'{u}' doesn't start with 'https://github.com'".format(
+                    u=repo_url)
+            )
+        api_url = repo_url.replace("github.com",
+                                   "api.github.com/repos")
+        api_url_latest_release = api_url + "/releases/latest"
+
+        response = requests.get(api_url_latest_release).json()
+        try:
+            latest_release_version = response["tag_name"]
+        except KeyError:
+            if "message" in response and response["message"] == "Not Found":
+                api_url_tags = api_url + "/tags"
+                response = requests.get(api_url_tags).json()
+                latest_release_version = response[0]["name"]
+
+        return latest_release_version
+
+    @staticmethod
+    def _is_latest_version(aur_pkg_version, upstream_version):
+        """
+        Comparation function. Current impletementation is too naive:
+            AUR: 1.0.0, Upstream: 1.0.0 -> latest
+            AUR: 1.0.0, Upstream: v1.0.1 -> NOT latest
+            AUR: 1.1.0, Upstream: ver1.0.1 -> NOT latest (not occured...)
+        """
+
+        comparable_aur_pkg_version = aur_pkg_version.split("-")[0]
+        return comparable_aur_pkg_version in upstream_version
+
+    def _post_package_version_warning_to_slack(self, pkg_name, pkg_version,
+                                               upstream_version):
+        attachments = []
+        attachment = {
+            "pretext": "Upstream version seems to be updated.",
+            "color": "warning",
+            "fields": [
+                {
+                    "title": "Package Name",
+                    "value": pkg_name,
+                    "short": False
+                },
+                {
+                    "title": "Package Version in AUR",
+                    "value": pkg_version,
+                    "short": True
+                },
+                {
+                    "title": "Upstream Version",
+                    "value": upstream_version,
+                    "short": True
+                },
+            ]
+        }
+        attachments.append(attachment)
+        self.slack.notify(attachments=attachments,
+                          username="AUR package version checker",
+                          icon_emoji=":mag:")
+
+    def compare_package_versions(self):
+        packages = self._get_maintained_packages()
+        for package in packages:
+            package_version = package["Version"]
+            package_name = package["Name"]
+
+            upstream_url = package["URL"]
+            try:
+                upstream_version = self._get_latest_upstream_version_on_github(
+                    upstream_url)
+            except ValueError:
+                msg = ("Upstream of AUR packege {p} isn't hosted "
+                       "on GitHub").format(p=package_name)
+            else:
+                if self._is_latest_version(package_version, upstream_version):
+                    msg = "AUR package {p} is latest: {v}".format(
+                        p=package_name, v=package_version)
+                else:
+                    msg = ("Upstream version {v} is available "
+                           "for AUR package {p}").format(v=upstream_version,
+                                                         p=package_name)
+                    if self.slack:
+                        self._post_package_version_warning_to_slack(
+                            package_name, package_version, upstream_version)
+            print(msg)
+
+
+if __name__ == "__main__":
+    ARGS = docopt(__doc__)
+    MAINTAINER = ARGS["MAINTAINER"]
+    WEBHOOK = ARGS["--slack-webhook-url"]
+    CONFIG = ARGS["-c"]
+
+    AUR = MaintainedAURPackages(maintainer=MAINTAINER,
+                                slack_webhook_url=WEBHOOK,
+                                config=CONFIG)
+    AUR.compare_package_versions()

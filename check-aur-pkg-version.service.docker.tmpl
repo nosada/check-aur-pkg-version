@@ -1,0 +1,9 @@
+[Unit]
+Description=Compare AUR package version with upstream on GitHub (on Docker container)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker run --rm IMAGE_NAME
+
+[Install]
+WantedBy=default.target

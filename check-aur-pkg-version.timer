@@ -1,0 +1,12 @@
+[Unit]
+Description=Compare AUR package version with upstream on GitHub
+RefuseManualStart=no
+RefuseManualStop=no
+
+[Timer]
+Persistent=false
+OnCalendar=*-*-* *:00:00
+Unit=check-aur-pkg-version.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Compare AUR package version with upstream on GitHub
+
+[Service]
+Type=oneshot
+ExecStart=bash -c "source VENV_LOCATION/check-aur-pkg-version/bin/activate; SCRIPT_LOCATION/check-aur-pkg-version -c SCRIPT_LOCATION/config.yaml"
+
+[Install]
+WantedBy=default.target
