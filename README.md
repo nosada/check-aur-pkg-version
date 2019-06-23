@@ -27,7 +27,7 @@ Options:
 ```
 
 ## Install
-Write `config.yaml` based on `config.yaml.tmpl` and create directory `$HOME/Venvs`,  then invoke below:
+Write `config.yaml` based on `config.yaml.tmpl`, then invoke below:
 ```
 $ make
 $ systemctl --user start check-aur-pkg-version.timer
