@@ -19,6 +19,8 @@ Options:
                                        maintainer and webhook URL directly
 """
 
+import re
+
 from docopt import docopt
 import requests
 import slackweb
@@ -36,7 +38,6 @@ class MaintainedAURPackages():
             self.maintainer = conf["maintainer"]
             if "slack_webhook_url" in conf:
                 slack_webhook_url = conf["slack_webhook_url"]
-
         elif maintainer:
             self.maintainer = maintainer
 
@@ -53,16 +54,48 @@ class MaintainedAURPackages():
         packages = response["results"]
         return packages
 
-    @staticmethod
-    def _get_latest_upstream_version_on_github(repo_url):
-        if not repo_url.startswith("https://github.com"):
+    def _get_upstream_url_from_pkgbuild(self, package_name):
+        pkgbuild_url = "{a}/cgit/aur.git/plain/PKGBUILD?h={p}".format(
+            a=self.aur_endpoint, p=package_name)
+        pkgbuild = requests.get(pkgbuild_url).text
+        for line in pkgbuild.split("\n"):
+            matched = re.match(
+                "^.*http[s]://github.com/([-_a-zA-Z0-9]*)/([-_a-zA-Z0-9]*)/*",
+                line)
+            if matched:
+                author, repo_name = matched.groups()
+                url = "https://github.com/{a}/{r}".format(a=author,
+                                                          r=repo_name)
+                return url
+
+    def _get_github_hosted_url(self, url, package_name):
+        matched = re.match(
+            "^http[s]?://([-_a-zA-Z0-9]*).github.io/([-_a-zA-Z0-9]*)/*",
+            url)
+        if matched:
+            author, repo_name = matched.groups()
+            url = "https://github.com/{a}/{r}".format(a=author,
+                                                      r=repo_name)
+        else:
+            expected = self._get_upstream_url_from_pkgbuild(package_name)
+            if expected:
+                url = expected
+        return url
+
+    def _get_latest_upstream_version_on_github(self, url, package_name):
+        if not url.startswith("https://github.com"):
+            url = self._get_github_hosted_url(url, package_name)
+
+        if url.startswith("https://github.com"):
+            api_url = url.replace("github.com", "api.github.com/repos")
+            api_url_latest_release = api_url + "/releases/latest"
+        else:
             raise ValueError(
-                "'{u}' doesn't start with 'https://github.com'".format(
-                    u=repo_url)
+                (
+                    "Upstream of AUR packege {p} isn't hosted "
+                    "on GitHub. Hosted in {u}"
+                ).format(p=package_name, u=url)
             )
-        api_url = repo_url.replace("github.com",
-                                   "api.github.com/repos")
-        api_url_latest_release = api_url + "/releases/latest"
 
         response = requests.get(api_url_latest_release).json()
         try:
@@ -71,7 +104,16 @@ class MaintainedAURPackages():
             if "message" in response and response["message"] == "Not Found":
                 api_url_tags = api_url + "/tags"
                 response = requests.get(api_url_tags).json()
-                latest_release_version = response[0]["name"]
+                if response:
+                    latest_release_version = response[0]["name"]
+                else:
+                    raise ValueError(
+                        (
+                            "Upstream of AUR package {p} is hosted in GitHub, "
+                            "but not released or tagged yet. "
+                            "Versionized by hash?"
+                        ).format(p=package_name)
+                    )
 
         return latest_release_version
 
@@ -125,10 +167,9 @@ class MaintainedAURPackages():
             upstream_url = package["URL"]
             try:
                 upstream_version = self._get_latest_upstream_version_on_github(
-                    upstream_url)
-            except ValueError:
-                msg = ("Upstream of AUR packege {p} isn't hosted "
-                       "on GitHub").format(p=package_name)
+                    upstream_url, package_name)
+            except ValueError as caught:
+                msg = str(caught)
             else:
                 if self._is_latest_version(package_version, upstream_version):
                     msg = "AUR package {p} is latest: {v}".format(
