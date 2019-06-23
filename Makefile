@@ -21,7 +21,7 @@ FILES_FOR_DOCKER=check-aur-pkg-version \
 TEMPLATE_DOCKER=check-aur-pkg-version.service.docker.tmpl
 DOCKER_IMAGE_NAME=local/${NAME}:latest
 
-all: generate-systemd-service install set-up-python activate-systemd-services
+all: generate-systemd-service install-using-docker set-up-python activate-systemd-services
 
 install: ${FILES}
 	install -Dm 644 ${NAME}.service ${USER_SYSTEMD_LOCATION}
