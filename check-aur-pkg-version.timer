@@ -5,7 +5,7 @@ RefuseManualStop=no
 
 [Timer]
 Persistent=false
-OnCalendar=*-*-* *:00:00
+OnCalendar=*-*-* 12:00:00
 Unit=check-aur-pkg-version.service
 
 [Install]
