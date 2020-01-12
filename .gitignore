@@ -1,2 +1,4 @@
 config.yaml
+docker-compose.yaml
+docker-compose.yml
 check-aur-pkg-version.service

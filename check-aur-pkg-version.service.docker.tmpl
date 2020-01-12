@@ -3,7 +3,8 @@ Description=Compare AUR package version with upstream on GitHub (on Docker conta
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/docker run --rm IMAGE_NAME
+WorkingDirectory=REPOSITORY_LOCATION
+ExecStart=/usr/bin/docker-compose run app
 
 [Install]
 WantedBy=default.target

@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 HOME_DIRECTORY=$(shell echo ${HOME})
-SCRIPT_LOCATION=$(shell pwd)
+REPOSITORY_LOCATION=$(shell pwd)
 VENV_LOCATION=${HOME_DIRECTORY}/Venvs
 USER_SYSTEMD_LOCATION=${HOME_DIRECTORY}/.config/systemd/user
 
@@ -38,13 +38,13 @@ set-up-python:
 	${VENV_LOCATION}/${NAME}/bin/pip install -r requirements.txt
 
 generate-systemd-service: ${TEMPLATE}
-	sed -e 's|VENV_LOCATION|'${VENV_LOCATION}'|g' -e 's|SCRIPT_LOCATION|'${SCRIPT_LOCATION}'|g' ${TEMPLATE} > ${NAME}.service
+	sed -e 's;VENV_LOCATION;'${VENV_LOCATION}';g' -e 's;REPOSITORY_LOCATION;'${REPOSITORY_LOCATION}';g' ${TEMPLATE} > ${NAME}.service
 
 generate-docker-systemd-service: ${TEMPLATE_DOCKER}
-	sed -e 's|IMAGE_NAME|'${DOCKER_IMAGE_NAME}'|g' ${TEMPLATE_DOCKER} > ${NAME}.service
+	sed -e 's;IMAGE_NAME;'${DOCKER_IMAGE_NAME}';g' -e 's;REPOSITORY_LOCATION;'${REPOSITORY_LOCATION}';g' ${TEMPLATE_DOCKER} > ${NAME}.service
 
 build-docker-image: ${FILES_FOR_DOCKER}
-	docker build . -t ${DOCKER_IMAGE_NAME}
+	docker-compose build
 
 activate-systemd-services:
 	systemctl --user enable ${NAME}.service

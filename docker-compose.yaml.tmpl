@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  app:
+    environment:
+      MAINTAINER: AUR USER NAME
+      SLACK_WEBHOOK_URL: SLACK WEBHOOK URL
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: local/check-aur-pkg-version:latest
+    restart: always
+networks:
+  default:
+    external:
+      name: bridge
