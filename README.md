@@ -12,18 +12,22 @@ Compare version of AUR package, which are maintained by given maintainer,
 with upstream on GitHub
 
 Usage:
-    check_aur_pkg_version MAINTAINER [--slack-webhook-url WEBHOOK_URL]
-    check_aur_pkg_version -c CONFIG
+    check_aur_pkg_version [MAINTAINER] [--slack-webhook-url SLACK_WEBHOOK_URL]
+    check_aur_pkg_version [-c CONFIG]
 
 Arguments:
     MAINTAINER                         AUR package maintainer
 
 Options:
-    --slack-webhook-url WEBHOOK_URL    Slack incoming webhook URL
-                                       to post message of comparation
-                                       result
-    -c CONFIG                          Specify config instead of passing
-                                       maintainer and webhook URL directly
+    --slack-webhook-url SLACK_WEBHOOK_URL    Slack incoming webhook URL
+                                             to post message of comparation
+                                             result
+    -c CONFIG                                Specify config instead of passing
+                                             maintainer and webhook URL
+                                             directly
+
+Notes:
+    MAINTAINER and SLACK_WEBHOOK_URL can be passed as environment variables.
 ```
 
 ## Install
