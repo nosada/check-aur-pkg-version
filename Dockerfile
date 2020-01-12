@@ -17,4 +17,4 @@ RUN pip install --no-cache-dir --no-warn-script-location --user -r requirements.
 
 FROM prepared
 COPY . .
-CMD ["python /pkgbuild/check-aur-pkg-version"]
+CMD ["python", "/pkgbuild/check-aur-pkg-version"]

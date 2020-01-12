@@ -195,11 +195,11 @@ if __name__ == "__main__":
             MAINTAINER = CONFIG_OBJ["maintainer"]
             SLACK_WEBHOOK_URL = CONFIG_OBJ["slack_webhook_url"]
 
-    if "MAINTAINER" not in os.environ:
+    if "MAINTAINER" in os.environ:
         print("Using maintainer in enviromnet variable 'MAINTAINNER'")
         MAINTAINER = os.environ["MAINTAINER"]
 
-    if "SLACK_WEBHOOK_URL" not in os.environ:
+    if "SLACK_WEBHOOK_URL" in os.environ:
         print(
             ("Using Slack webhook URL in enviromnet variable "
              "'SLACK_WEBHOOK_URL'")
