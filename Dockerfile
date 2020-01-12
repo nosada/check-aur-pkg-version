@@ -1,4 +1,4 @@
-FROM python:alpine from prepared
+FROM python:alpine as prepared
 
 ENV USER "maintainer"
 ENV BASE_DIR "/pkgbuild"
