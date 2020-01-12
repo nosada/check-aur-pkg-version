@@ -1,15 +1,20 @@
-FROM python:alpine
+FROM python:alpine from prepared
 
-ENV BASE_DIR "/app"
+ENV USER "maintainer"
+ENV BASE_DIR "/pkgbuild"
+ENV HOME "$BASE_DIR"
 
 RUN apk --no-cache add shadow \
-        && useradd --create-home app \
-        && mkdir -p $BASE_DIR \
-        && chown app:app  $BASE_DIR
-USER app
-WORKDIR $BASE_DIR
+        && useradd --create-home "$USER" \
+        && mkdir -p "$BASE_DIR" \
+        && chown "$USER:$USER"  "$BASE_DIR"
 
-COPY . .
+WORKDIR $BASE_DIR
+USER "$USER"
+
+COPY --chown="$USER" requirements.txt .
 RUN pip install --no-cache-dir --no-warn-script-location --user -r requirements.txt
 
-CMD ["/app/check-aur-pkg-version"]
+FROM prepared
+COPY . .
+CMD ["python /app/check-aur-pkg-version"]
