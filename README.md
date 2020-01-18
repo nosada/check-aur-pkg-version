@@ -1,8 +1,6 @@
 # check-aur-pkg-version
 Compare version of AUR package, which are maintained by given maintainer, with upstream on GitHub.
 
-Using systemd user service and timer (available by adding `--user` to `systemctl`), result of version comparison will be posted everyday at 12:00.
-
 ## Usage:
 See `python check-aur-pkg-version --help`:
 

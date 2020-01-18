@@ -49,11 +49,13 @@ build-docker-image: ${FILES_FOR_DOCKER}
 activate-systemd-services:
 	systemctl --user enable ${NAME}.service
 	systemctl --user enable ${NAME}.timer
+	systemctl --user start ${NAME}.timer
 	systemctl --user daemon-reload
 
 deactivate-systemd-services:
 	systemctl --user disable ${NAME}.service
 	systemctl --user disable ${NAME}.timer
+	systemctl --user stop ${NAME}.timer
 	systemctl --user daemon-reload
 
 clean: ${NAME}.service
@@ -63,3 +65,4 @@ uninstall: deactivate-systemd-services
 	rm -f ${USER_SYSTEMD_LOCATION}/${NAME}.service
 	rm -f ${USER_SYSTEMD_LOCATION}/${NAME}.timer
 	rm -rf ${VENV_LOCATION}/${NAME}
+	docker rmi -f ${DOCKER_IMAGE_NAME}
