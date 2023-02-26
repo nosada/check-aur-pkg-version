@@ -23,6 +23,7 @@ Notes:
     MAINTAINER and SLACK_WEBHOOK_URL can be passed as environment variables.
 """
 
+from urllib.parse import quote
 import errno
 import os
 import re
@@ -50,7 +51,7 @@ class MaintainedAURPackages():
         return packages
 
     def _get_upstream_url(self, package_name):
-        rpc_query = "/rpc/?v=5&type=info&arg[]={p}".format(p=package_name)
+        rpc_query = "/rpc/?v=5&type=info&arg[]={p}".format(p=quote(package_name))
         response = requests.get(self.aur_endpoint + rpc_query).json()
 
         info = response["results"][0]

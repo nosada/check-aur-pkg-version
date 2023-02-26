@@ -5,7 +5,7 @@ Compare version of AUR package, which are maintained by given maintainer, with u
 See `python check-aur-pkg-version --help`:
 
 ```
-$ check-aur-pkg-version ./check-aur-pkg-version --help
+$ ./check-aur-pkg-version --help
 Compare version of AUR package, which are maintained by given maintainer,
 with upstream on GitHub
 
