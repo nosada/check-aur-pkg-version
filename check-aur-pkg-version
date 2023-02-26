@@ -96,9 +96,9 @@ class MaintainedAURPackages():
         release_url = repo_url + "/releases/latest"
 
         response = _get(release_url)
-        try:
+        if "tag_name" in reponse:
             version = response["tag_name"]
-        except KeyError:
+        else:
             if response.get("message") == "Not Found":
                 tags_url = repo_url + "/tags"
                 response = _get(tags_url)
