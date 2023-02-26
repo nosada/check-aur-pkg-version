@@ -96,7 +96,7 @@ class MaintainedAURPackages():
         release_url = repo_url + "/releases/latest"
 
         response = _get(release_url)
-        if "tag_name" in reponse:
+        if "tag_name" in response:
             version = response["tag_name"]
         else:
             if response.get("message") == "Not Found":
