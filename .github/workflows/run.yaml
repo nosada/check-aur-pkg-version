@@ -1,0 +1,35 @@
+name: run
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "50 11 * * *"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare docker-compose.yaml
+        run: |
+          cat << EOF > docker-compose.yaml
+            version: "3.8"
+            services:
+              app:
+                environment:
+                  MAINTAINER: "${{ vars.MAINTAINER }}"
+                  SLACK_WEBHOOK_URL: "${{ secrets.SLACK_WEBHOOK_URL }}"
+                build:
+                  context: .
+                  dockerfile: Dockerfile
+                image: local/check-aur-pkg-version:latest
+                restart: always
+                network_mode: bridge
+          EOF
+        shell: bash
+      - name: Prepare containers
+        run: docker compose build
+      - name: Run containers
+        run: docker compose up

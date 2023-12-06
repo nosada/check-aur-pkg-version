@@ -13,7 +13,7 @@ WORKDIR $BASE_DIR
 USER "$USER"
 
 COPY --chown="$USER" requirements.txt .
-RUN pip install --no-cache-dir --no-warn-script-location --user -r requirements.txt
+RUN pip install --no-cache-dir --no-warn-script-location --user --break-system-packages -r requirements.txt
 
 FROM prepared
 COPY . .
